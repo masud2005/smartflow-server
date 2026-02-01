@@ -1,0 +1,18 @@
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  password  String  
+  isVerified Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staffMembers Staff[]
+  services     Service[]
+  appointments Appointment[]
+  activityLogs ActivityLog[]
+  usersOtp     UserOtp[]
+
+  @@index([email])
+  @@map("users")
+}

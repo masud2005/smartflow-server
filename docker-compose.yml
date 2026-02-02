@@ -1,18 +1,73 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:15
-    container_name: smart_appointment_db
-    restart: always
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${SERVER_NAME}_postgres
+    restart: unless-stopped
+    profiles:
+      - prod
+      - dev
+      - server
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: smart-appointment-user
-      POSTGRES_PASSWORD: smart-appointment-pass
-      POSTGRES_DB: smart-appointment-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartflow_net
+
+  server:
+    image: ${IMMAGE_NAME}
+    container_name: ${SERVER_NAME}
+    restart: unless-stopped
+    profiles:
+      - prod
+      - server
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NODE_ENV: production
+    ports:
+      - '${SERVER_PORT}:${PORT}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - smartflow_net
+
+  prisma-studio:
+    image: ${IMMAGE_NAME}
+    container_name: ${SERVER_NAME}_prisma_studio
+    restart: unless-stopped
+    profiles:
+      - prod
+      - server
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    ports:
+      - '${PRISMA_STUDIO_PORT_LOCAL}:${PRISMA_STUDIO_PORT}'
+    command: npx prisma studio --port ${PRISMA_STUDIO_PORT} --browser none
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - smartflow_net
+
+networks:
+  smartflow_net:
+    driver: bridge
 
 volumes:
-  pg_data:
+  postgres_data:

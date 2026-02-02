@@ -89,7 +89,9 @@ export class AuthService {
 
     return ResponseUtil.created(
       user,
-      user.isVerified ? 'Registration successful.' : 'Registration successful. Please verify your email using the OTP sent to your inbox.',
+      user.isVerified
+        ? 'Registration successful.'
+        : 'Registration successful. Please verify your email using the OTP sent to your inbox.',
     );
   }
 

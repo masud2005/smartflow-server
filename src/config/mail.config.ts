@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 export interface MailConfig {
   host: string;
   port: number;

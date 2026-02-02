@@ -16,6 +16,7 @@ COPY prisma.config.ts ./
 COPY . .
 
 # Generate Prisma Client and build
+ENV DATABASE_URL="postgresql://postgres_user:postgres_pass@localhost:5432/postgres_db"
 RUN npx prisma generate
 RUN npm run build
 

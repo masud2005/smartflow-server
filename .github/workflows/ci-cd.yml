@@ -29,6 +29,8 @@ jobs:
         run: pnpm format
       
       - name: Run build
+        env:
+          DATABASE_URL: "postgresql://postgres_user:postgres_pass@localhost:5432/postgres_db"
         run: pnpm build
 
   build-and-push-docker-image:
